@@ -3,13 +3,9 @@
 import snakemake
 
 
-###########
-# GLOBALS #
-###########
-
-porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
-bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.76'
-
+#############
+# FUNCTIONS #
+#############
 
 def combine_indiv_reads(wildcards):
     my_read_path = f'data/{wildcards.indiv}/pass/{{read}}.fastq.gz'
@@ -19,14 +15,26 @@ def combine_indiv_reads(wildcards):
     return(sorted(set(my_output)))
 
 
+###########
+# GLOBALS #
+###########
+
+porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
+bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.76'
+
+indivs = ['BB31', 'BB55']
+
 #########
 # RULES #
 #########
 
+wildcard_constraints:
+    indiv = '|'.join(indivs)
+
 rule target:
     input:
         expand('output/010_porechop/{indiv}.fastq',
-               indiv=['BB31', 'BB55'])
+               indiv=indivs)
 
 rule combine_indiv_reads:
     input:
