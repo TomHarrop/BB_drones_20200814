@@ -20,7 +20,7 @@ def combine_indiv_reads(wildcards):
 ###########
 
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
-bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.76'
+bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.86'
 
 indivs = ['BB31', 'BB55']
 
@@ -33,14 +33,15 @@ wildcard_constraints:
 
 rule target:
     input:
-        expand('output/010_porechop/{indiv}.fastq',
+        expand('output/010_porechop/{indiv}.fastq.gz',
                indiv=indivs)
+
 
 rule combine_indiv_reads:
     input:
         combine_indiv_reads
     output:
-        'output/010_porechop/{indiv}.fastq'
+        temp('output/010_porechop/{indiv}.fastq')
     singularity:
         bbmap
     shell:
@@ -50,7 +51,7 @@ rule porechop:
     input:
         'data/{indiv}/pass/{read}.fastq.gz'
     output:
-        'output/010_porechop/{indiv}/{read}.fastq'
+        temp('output/010_porechop/{indiv}/{read}.fastq')
     log:
         'output/logs/porechop.{indiv}.{read}.log'
     threads:
@@ -66,3 +67,14 @@ rule porechop:
         '--discard_middle '
         '&> {log}'
 
+rule compress_reads:
+    input:
+        'output/{path}/{file}.fastq'
+    output:
+        'output/{path}/{file}.fastq.gz'
+    threads:
+        min(workflow.cores, 10)
+    singualarity:
+        bbmap
+    shell:
+        'pigz -c --best {input} > {output}'
