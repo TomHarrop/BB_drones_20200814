@@ -19,8 +19,9 @@ def combine_indiv_reads(wildcards):
 # GLOBALS #
 ###########
 
-porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.86'
+flye = 'shub://TomHarrop/assemblers:flye_2.8'
+porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 
 indivs = ['BB31', 'BB55']
 
@@ -33,8 +34,31 @@ wildcard_constraints:
 
 rule target:
     input:
-        expand('output/010_porechop/{indiv}.fastq.gz',
+        expand('output/020_flye/{indiv}/30-contigger/contigs.fasta',
                indiv=indivs)
+
+rule flye:
+    input:
+        fq = 'output/010_porechop/{indiv}.fastq.gz'
+    output:
+        'output/020_flye/{indiv}/30-contigger/contigs.fasta'
+    params:
+        outdir = 'output/020_flye/{indiv}',
+        size = '250m'
+    threads:
+        min(128, workflow.cores)
+    log:
+        'output/logs/flye.{indiv}.log'
+    singularity:
+        flye
+    shell:
+        'flye '
+        # '--resume '
+        '--nano-raw {input.fq} '
+        '--genome-size {params.size} '
+        '--out-dir {params.outdir} '
+        '--threads {threads} '
+        '&>> {log}'
 
 
 rule combine_indiv_reads:
