@@ -41,7 +41,7 @@ rule combine_indiv_reads:
     input:
         combine_indiv_reads
     output:
-        temp('output/010_porechop/{indiv}.fastq')
+        pipe('output/010_porechop/{indiv}.fastq')
     singularity:
         bbmap
     shell:
