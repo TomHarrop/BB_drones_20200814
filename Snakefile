@@ -14,7 +14,7 @@ bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.76'
 def combine_indiv_reads(wildcards):
     my_read_path = f'data/{wildcards.indiv}/pass/{{read}}.fastq.gz'
     my_output_path = f'output/010_porechop/{wildcards.indiv}.fastq'
-    my_read_names = snakemake.io.glob_wildcards(my_read_names).read
+    my_read_names = snakemake.io.glob_wildcards(my_read_path).read
     my_output = snakemake.io.expand(my_output_path, read=my_read_names)
     return(sorted(set(my_output)))
 
