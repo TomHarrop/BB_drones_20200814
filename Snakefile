@@ -74,7 +74,7 @@ rule compress_reads:
         'output/{path}/{file}.fastq.gz'
     threads:
         min(workflow.cores, 10)
-    singualarity:
+    singularity:
         bbmap
     shell:
         'pigz -c --best {input} > {output}'
