@@ -36,9 +36,7 @@ wildcard_constraints:
 
 rule target:
     input:
-        # expand('output/020_flye/{indiv}/assembly.fasta',
-        #        indiv=indivs),
-        expand('output/{folder}/{indiv}.sorted.bam',
+        expand('output/{folder}/{indiv}.sorted.bam.bai',
                indiv=indivs,
                folder=['040_wga', '030_mapped'])
 
@@ -212,3 +210,16 @@ rule compress_reads:
         bbmap
     shell:
         'pigz -c --best {input} > {output}'
+
+
+rule index_bamfile:
+    input:
+        'output/{folder}/{indiv}.sorted.bam'
+    output:
+        'output/{folder}/{indiv}.sorted.bam.bai'
+    log:
+        'output/logs/index_bamfile.{folder}.{indiv}.log'
+    singularity:
+        samtools
+    shell:
+        'samtools index {input} 2> {log}'
