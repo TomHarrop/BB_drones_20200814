@@ -36,19 +36,44 @@ wildcard_constraints:
 
 rule target:
     input:
-        expand('output/020_flye/{indiv}/assembly.fasta',
-               indiv=indivs),
-        expand('output/030_mapped/{indiv}.sorted.bam',
-               indiv=indivs)
+        # expand('output/020_flye/{indiv}/assembly.fasta',
+        #        indiv=indivs),
+        expand('output/{folder}/{indiv}.sorted.bam',
+               indiv=indivs,
+               folder=['040_wga', '030_mapped'])
+
+# WGA
+rule wga:
+    input:
+        fa = 'output/020_flye/{indiv}/assembly.fasta',
+        ref = 'output/000_ref/ref.mmi'
+    output:
+        pipe('output/040_wga/{indiv}.sam')
+    log:
+        'output/logs/wga.{indiv}.log'
+    threads:
+        min(workflow.cores, 64)
+    singularity:
+        minimap
+    shell:
+        'minimap2 '
+        '-t {threads} '
+        '-ax asm5 '
+        '--MD '
+        '{input.ref} '
+        '{input.fa} '
+        '> {output} '
+        '2> {log}'
+
 
 # REFERENCE MAP
 rule sort:
     input:
-        'output/030_mapped/{indiv}.bam'
+        'output/{folder}/{indiv}.bam'
     output:
-        'output/030_mapped/{indiv}.sorted.bam'
+        'output/{folder}/{indiv}.sorted.bam'
     log:
-        'output/logs/sort.{indiv}.log'
+        'output/logs/sort.{folder}.{indiv}.log'
     threads:
         min(workflow.cores, 4)
     singularity:
@@ -63,11 +88,11 @@ rule sort:
 
 rule sam_to_bam:
     input:
-        'output/030_mapped/{indiv}.sam'
+        'output/{folder}/{indiv}.sam'
     output:
-        pipe('output/030_mapped/{indiv}.bam')
+        pipe('output/{folder}/{indiv}.bam')
     log:
-        'output/logs/sam_to_bam.{indiv}.log'
+        'output/logs/sam_to_bam.{folder}.{indiv}.log'
     threads:
         1
     singularity:
