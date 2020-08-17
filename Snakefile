@@ -25,7 +25,7 @@ flye = 'shub://TomHarrop/assemblers:flye_2.8'
 minimap = 'shub://TomHarrop/singularity-containers:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
-sniffles = 'shub://TomHarrop/variant-utils:sniffles_1.0.12a'
+sniffles = 'shub://TomHarrop/variant-utils:sniffles_53b7500'
 
 indivs = ['BB31', 'BB55']
 
@@ -52,7 +52,7 @@ rule sniffles:
     output:
         'output/050_sniffles/{indiv}.vcf'
     log:
-        'output/logs/sniffles.{indiv}.vcf'
+        'output/logs/sniffles.{indiv}.log'
     threads:
         min(workflow.cores, 64)
     singularity:
