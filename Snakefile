@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import snakemake
+import tempfile
 
 
 #############
@@ -24,6 +25,7 @@ flye = 'shub://TomHarrop/assemblers:flye_2.8'
 minimap = 'shub://TomHarrop/singularity-containers:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
+sniffles = 'shub://TomHarrop/variant-utils:sniffles_1.0.12a'
 
 indivs = ['BB31', 'BB55']
 
@@ -38,7 +40,30 @@ rule target:
     input:
         expand('output/{folder}/{indiv}.sorted.bam.bai',
                indiv=indivs,
-               folder=['040_wga', '030_mapped'])
+               folder=['040_wga']),
+        expand('output/050_sniffles/{indiv}.vcf.gz',
+               indiv=indivs)
+
+
+# SVs
+rule sniffles:
+    input:
+        'output/030_mapped/{indiv}.sorted.bam'
+    output:
+        'output/050_sniffles/{indiv}.vcf'
+    log:
+        'output/logs/sniffles.{indiv}.vcf'
+    threads:
+        min(workflow.cores, 64)
+    singularity:
+        sniffles
+    shell:
+        'sniffles '
+        '-m {input} '
+        '-v {output} '
+        f'--tmp_file {tempfile.mkdtemp()} '
+        '-t {threads} '
+        '&> {log}'
 
 # WGA
 rule wga:
@@ -199,6 +224,7 @@ rule porechop:
         '--discard_middle '
         '&> {log}'
 
+# GENERICS
 rule compress_reads:
     input:
         'output/{path}/{file}.fastq'
@@ -223,3 +249,16 @@ rule index_bamfile:
         samtools
     shell:
         'samtools index {input} 2> {log}'
+
+rule index_vcf:
+    input:
+        'output/{folder}/{file}.vcf'
+    output:
+        gz = 'output/{folder}/{file}.vcf.gz',
+        tbi = 'output/{folder}/{file}.vcf.gz.tbi'
+    singularity:
+        samtools
+    shell:
+        'bgzip -c {input} > {output.gz} '
+        '; '
+        'tabix -p vcf {output.gz}'
