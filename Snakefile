@@ -21,7 +21,7 @@ def combine_indiv_reads(wildcards):
 
 bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.86'
 flye = 'shub://TomHarrop/assemblers:flye_2.8'
-minimap = 'shub://TomHarrop/singularity-containers:minimap2_2.11r797'
+minimap = 'shub://TomHarrop/singularity-containers:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
 
@@ -36,21 +36,23 @@ wildcard_constraints:
 
 rule target:
     input:
-        expand('output/020_flye/{indiv}/30-contigger/contigs.fasta',
+        expand('output/020_flye/{indiv}/assembly.fasta',
                indiv=indivs),
-        expand('output/020_mapped/{indiv}.sorted.bam',
+        expand('output/030_mapped/{indiv}.sorted.bam',
                indiv=indivs)
 
 # REFERENCE MAP
 rule sort:
     input:
-        'output/020_mapped/{indiv}.bam'
+        'output/030_mapped/{indiv}.bam'
     output:
-        'output/020_mapped/{indiv}.sorted.bam'
+        'output/030_mapped/{indiv}.sorted.bam'
     log:
         'output/logs/sort.{indiv}.log'
     threads:
         min(workflow.cores, 4)
+    singularity:
+        samtools
     shell:
         'samtools sort '
         '-@ {threads} '
@@ -61,9 +63,9 @@ rule sort:
 
 rule sam_to_bam:
     input:
-        'output/020_mapped/{indiv}.sam'
+        'output/030_mapped/{indiv}.sam'
     output:
-        pipe('output/020_mapped/{indiv}.bam')
+        pipe('output/030_mapped/{indiv}.bam')
     log:
         'output/logs/sam_to_bam.{indiv}.log'
     threads:
@@ -80,7 +82,7 @@ rule map_to_genome:
         fq = 'output/010_porechop/{indiv}.fastq.gz',
         ref = 'output/000_ref/ref.mmi'
     output:
-        pipe('output/020_mapped/{indiv}.sam')
+        pipe('output/030_mapped/{indiv}.sam')
     params:
         rg = '\'@RG\\tID:{indiv}\\tSM:{indiv}\''
     log:
@@ -93,6 +95,7 @@ rule map_to_genome:
         'minimap2 '
         '-t {threads} '
         '-ax map-ont '
+        '--MD '
         '-R {params.rg} '
         '{input.ref} '
         '{input.fq} '
@@ -123,7 +126,7 @@ rule flye:
     input:
         fq = 'output/010_porechop/{indiv}.fastq.gz'
     output:
-        'output/020_flye/{indiv}/30-contigger/contigs.fasta'
+        'output/020_flye/{indiv}/assembly.fasta'
     params:
         outdir = 'output/020_flye/{indiv}',
         size = '250m'
