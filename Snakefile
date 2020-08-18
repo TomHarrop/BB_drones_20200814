@@ -41,7 +41,7 @@ rule target:
         expand('output/{folder}/{indiv}.sorted.bam.bai',
                indiv=indivs,
                folder=['040_wga']),
-        expand('output/050_sniffles/{indiv}.vcf.gz',
+        expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs)
 
 
@@ -61,7 +61,7 @@ rule sniffles:
         'sniffles '
         '-m {input} '
         '-v {output} '
-        f'--tmp_file {tempfile.mkdtemp()} '
+        # f'--tmp_file {tempfile.mkdtemp()} '
         '-t {threads} '
         '&> {log}'
 
@@ -90,41 +90,6 @@ rule wga:
 
 
 # REFERENCE MAP
-rule sort:
-    input:
-        'output/{folder}/{indiv}.bam'
-    output:
-        'output/{folder}/{indiv}.sorted.bam'
-    log:
-        'output/logs/sort.{folder}.{indiv}.log'
-    threads:
-        min(workflow.cores, 4)
-    singularity:
-        samtools
-    shell:
-        'samtools sort '
-        '-@ {threads} '
-        '-l 9 '
-        '{input} '
-        '> {output} '
-        '2> {log}'
-
-rule sam_to_bam:
-    input:
-        'output/{folder}/{indiv}.sam'
-    output:
-        pipe('output/{folder}/{indiv}.bam')
-    log:
-        'output/logs/sam_to_bam.{folder}.{indiv}.log'
-    threads:
-        1
-    singularity:
-        samtools
-    shell:
-        'samtools view -bh -u {input} '
-        '>> {output} '
-        '2> {log}'
-
 rule map_to_genome:
     input:
         fq = 'output/010_porechop/{indiv}.fastq.gz',
@@ -225,6 +190,41 @@ rule porechop:
         '&> {log}'
 
 # GENERICS
+rule sort:
+    input:
+        'output/{folder}/{indiv}.bam'
+    output:
+        'output/{folder}/{indiv}.sorted.bam'
+    log:
+        'output/logs/sort.{folder}.{indiv}.log'
+    threads:
+        min(workflow.cores, 4)
+    singularity:
+        samtools
+    shell:
+        'samtools sort '
+        '-@ {threads} '
+        '-l 9 '
+        '{input} '
+        '> {output} '
+        '2> {log}'
+
+rule sam_to_bam:
+    input:
+        'output/{folder}/{indiv}.sam'
+    output:
+        pipe('output/{folder}/{indiv}.bam')
+    log:
+        'output/logs/sam_to_bam.{folder}.{indiv}.log'
+    threads:
+        1
+    singularity:
+        samtools
+    shell:
+        'samtools view -bh -u {input} '
+        '>> {output} '
+        '2> {log}'
+
 rule compress_reads:
     input:
         'output/{path}/{file}.fastq'
@@ -236,7 +236,6 @@ rule compress_reads:
         bbmap
     shell:
         'pigz -c --best {input} > {output}'
-
 
 rule index_bamfile:
     input:
