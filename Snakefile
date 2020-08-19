@@ -22,8 +22,9 @@ def combine_indiv_reads(wildcards):
 
 bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.86'
 flye = 'shub://TomHarrop/assemblers:flye_2.8'
-minimap = 'shub://TomHarrop/singularity-containers:minimap2_2.17r941'
+minimap = 'shub://TomHarrop/align-utils:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
+ragtag = 'shub://TomHarrop/assembly-utils:ragtag_1.0.1'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
 sniffles = 'shub://TomHarrop/variant-utils:sniffles_53b7500'
 
@@ -66,9 +67,18 @@ rule sniffles:
         '&> {log}'
 
 # WGA
+
+# make index
+# samtools faidx output/020_flye/BB31/assembly.fasta
+# convert to BED?
+# bedtools bamtobed -bed12 -i BB31.sorted.bam
+# convert to paf?
+# singularity exec shub://TomHarrop/align-utils:samtools_1.10 samtools view -h output/040_wga/BB31.sorted.bam |singularity exec ~/Containers/align-utils/img/minimap2_2.17r941.sif paftools.js sam2paf - > test/BB31.paf
+# 
+
 rule wga:
     input:
-        fa = 'output/020_flye/{indiv}/assembly.fasta',
+        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta',
         ref = 'output/000_ref/ref.mmi'
     output:
         pipe('output/040_wga/{indiv}.sam')
@@ -135,6 +145,27 @@ rule prepare_ref:
 
 
 # DE NOVO ASSEMBLY
+rule ragtag:
+    input:
+        ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
+        query = 'output/020_flye/{indiv}/assembly.fasta'
+    output:
+        'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta'
+    params:
+        wd = 'output/025_ragtag/{indiv}'
+    threads:
+        min(workflow.cores, 64)
+    singularity:
+        ragtag
+    shell:
+        'ragtag.py scaffold '
+        '-o {params.wd} '
+        '-w '
+        '-t {threads} '
+        '{input.ref} '
+        '{input.query} '
+        '&> {output.log}'
+
 rule flye:
     input:
         fq = 'output/010_porechop/{indiv}.fastq.gz'
