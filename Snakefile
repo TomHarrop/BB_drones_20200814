@@ -43,6 +43,8 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.paf',
                indiv=indivs),
+        expand('output/025_ragtag/{indiv}/ragtag.scaffolds.fasta.fai',
+               indiv=indivs),
         expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs)
 
