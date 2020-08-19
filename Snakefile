@@ -149,7 +149,7 @@ rule split_scaffolds_on_n:
     singularity:
         biopython
     script:
-        'src/split_scaffolds_on_n'
+        'src/split_scaffolds_on_n.py'
 
 rule ragtag:
     input:
