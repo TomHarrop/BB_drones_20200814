@@ -39,9 +39,10 @@ wildcard_constraints:
 
 rule target:
     input:
-        expand('output/{folder}/{indiv}.sorted.bam.bai',
-               indiv=indivs,
-               folder=['040_wga']),
+        expand('output/040_wga/{indiv}.sorted.bam.bai',
+               indiv=indivs),
+        expand('output/040_wga/{indiv}.paf',
+               indiv=indivs),
         expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs)
 
@@ -69,12 +70,14 @@ rule sniffles:
 # WGA
 
 # make index
-# samtools faidx output/020_flye/BB31/assembly.fasta
 # convert to BED?
 # bedtools bamtobed -bed12 -i BB31.sorted.bam
 # convert to paf?
 # singularity exec shub://TomHarrop/align-utils:samtools_1.10 samtools view -h output/040_wga/BB31.sorted.bam |singularity exec ~/Containers/align-utils/img/minimap2_2.17r941.sif paftools.js sam2paf - > test/BB31.paf
 # 
+
+
+
 
 rule wga:
     input:
@@ -258,6 +261,25 @@ rule sam_to_bam:
         '>> {output} '
         '2> {log}'
 
+
+rule bam_to_sam:
+    input:
+        'output/{folder}/{indiv}.sorted.bam'
+    output:
+        pipe('output/{folder}/{indiv}.samtobam.sam')
+    log:
+        'output/logs/bam_to_sam.{folder}.{indiv}.log'
+    threads:
+        1
+    singularity:
+        samtools
+    shell:
+        'samtools view -h {input} '
+        '>> {output} '
+        '2> {log}'
+
+
+
 rule compress_reads:
     input:
         'output/{path}/{file}.fastq'
@@ -294,3 +316,31 @@ rule index_vcf:
         'bgzip -c {input} > {output.gz} '
         '; '
         'tabix -p vcf {output.gz}'
+
+rule index_fa:
+    input:
+        'output/{folder}/{file}.{ext}'
+    output:
+        'output/{folder}/{file}.{ext}.fai'
+    wildcard_constraints:
+        ext = 'fasta|fa'
+    singularity:
+        samtools
+    shell:
+        'samtools faidx {input}'
+
+
+rule sam_to_paf:
+    input:
+        'output/{folder}/{indiv}.samtobam.sam'
+    output:
+        'output/{folder}/{indiv}.paf'
+    log:
+        'output/logs/sam_to_paf.{folder}.{indiv}.log'
+    singularity:
+        minimap
+    shell:
+        'paftools.js sam2paf '
+        '{input} '
+        '>{output} '
+        '2>{log}'
