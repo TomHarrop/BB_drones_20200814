@@ -25,6 +25,7 @@ biopython = 'shub://TomHarrop/py-containers:biopython_1.73'
 flye = 'shub://TomHarrop/assemblers:flye_2.8'
 minimap = 'shub://TomHarrop/align-utils:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
+r = 'shub://TomHarrop/r-containers:r_4.0.0'
 ragtag = 'shub://TomHarrop/assembly-utils:ragtag_1.0.1'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
 sniffles = 'shub://TomHarrop/variant-utils:sniffles_53b7500'
@@ -42,13 +43,10 @@ rule target:
     input:
         expand('output/040_wga/{indiv}.sorted.bam.bai',
                indiv=indivs),
-        expand('output/040_wga/{indiv}.paf',
-               indiv=indivs),
-        expand('output/027_split/{indiv}.fa.fai',
+        expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
         expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs)
-
 
 # SVs
 rule sniffles:
@@ -71,6 +69,20 @@ rule sniffles:
         '&> {log}'
 
 # WGA
+rule plot_wga:
+    input:
+        query_fai = 'output/027_split/{indiv}.fa.fai',
+        ref_fai = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai',
+        paf = 'output/040_wga/{indiv}.paf'
+    output:
+        plot = 'output/040_wga/{indiv}.pdf'
+    log:
+        'output/logs/plot_wga.{indiv}.log'
+    singularity:
+        r
+    script:
+        'src/plot_wga.R'
+
 rule wga:
     input:
         fa = 'output/027_split/{indiv}.fa',
@@ -281,8 +293,6 @@ rule bam_to_sam:
         '>> {output} '
         '2> {log}'
 
-
-
 rule compress_reads:
     input:
         'output/{path}/{file}.fastq'
@@ -322,11 +332,11 @@ rule index_vcf:
 
 rule index_fa:
     input:
-        'output/{folder}/{file}.{ext}'
+        '{path}/{file}.{ext}'
     output:
-        'output/{folder}/{file}.{ext}.fai'
+        '{path}/{file}.{ext}.fai'
     wildcard_constraints:
-        ext = 'fasta|fa'
+        ext = 'fasta|fa|fna'
     singularity:
         samtools
     shell:
