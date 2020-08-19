@@ -153,6 +153,8 @@ rule ragtag:
         'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta'
     params:
         wd = 'output/025_ragtag/{indiv}'
+    log:
+        'output/logs/ragtag.{indiv}.log'
     threads:
         min(workflow.cores, 64)
     singularity:
