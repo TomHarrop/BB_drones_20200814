@@ -166,7 +166,7 @@ rule ragtag:
         '-t {threads} '
         '{input.ref} '
         '{input.query} '
-        '&> {output.log}'
+        '&> {log}'
 
 rule flye:
     input:
