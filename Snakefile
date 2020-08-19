@@ -21,6 +21,7 @@ def combine_indiv_reads(wildcards):
 ###########
 
 bbmap = 'shub://TomHarrop/seq-utils:bbmap_38.86'
+biopython = 'shub://TomHarrop/py-containers:biopython_1.73'
 flye = 'shub://TomHarrop/assemblers:flye_2.8'
 minimap = 'shub://TomHarrop/align-utils:minimap2_2.17r941'
 porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
@@ -43,7 +44,7 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.paf',
                indiv=indivs),
-        expand('output/025_ragtag/{indiv}/ragtag.scaffolds.fasta.fai',
+        expand('output/027_split/{indiv}.fa.fai',
                indiv=indivs),
         expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs)
@@ -70,20 +71,9 @@ rule sniffles:
         '&> {log}'
 
 # WGA
-
-# make index
-# convert to BED?
-# bedtools bamtobed -bed12 -i BB31.sorted.bam
-# convert to paf?
-# singularity exec shub://TomHarrop/align-utils:samtools_1.10 samtools view -h output/040_wga/BB31.sorted.bam |singularity exec ~/Containers/align-utils/img/minimap2_2.17r941.sif paftools.js sam2paf - > test/BB31.paf
-# 
-
-
-
-
 rule wga:
     input:
-        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta',
+        fa = 'output/027_split/{indiv}.fa',
         ref = 'output/000_ref/ref.mmi'
     output:
         pipe('output/040_wga/{indiv}.sam')
@@ -150,6 +140,17 @@ rule prepare_ref:
 
 
 # DE NOVO ASSEMBLY
+rule split_scaffolds_on_n:
+    input:
+        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta'
+    output:
+        contig_map = 'output/027_split/{indiv}.map.txt',
+        contigs = 'output/027_split/{indiv}.fa'
+    singularity:
+        biopython
+    script:
+        'src/split_scaffolds_on_n'
+
 rule ragtag:
     input:
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
