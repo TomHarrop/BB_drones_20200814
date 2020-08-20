@@ -71,7 +71,7 @@ rule sniffles:
 # WGA
 rule plot_wga:
     input:
-        query_fai = 'output/027_split/{indiv}.fa.fai',
+        query_fai = 'output/027_oriented/{indiv}.fa.fai',
         ref_fai = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai',
         paf = 'output/040_wga/{indiv}.paf'
     output:
@@ -85,7 +85,7 @@ rule plot_wga:
 
 rule wga:
     input:
-        fa = 'output/027_split/{indiv}.fa',
+        fa = 'output/027_oriented/{indiv}.fa',
         ref = 'output/000_ref/ref.mmi'
     output:
         pipe('output/040_wga/{indiv}.sam')
@@ -152,23 +152,24 @@ rule prepare_ref:
 
 
 # DE NOVO ASSEMBLY
-rule split_scaffolds_on_n:
+rule orient_scaffolds:
     input:
-        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta'
+        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta',
+        agp = 'output/025_ragtag/{indiv}/ragtag.scaffolds.agp'
     output:
-        contig_map = 'output/027_split/{indiv}.map.txt',
-        contigs = 'output/027_split/{indiv}.fa'
+        fa = 'output/027_oriented/{indiv}.fa'
     singularity:
         biopython
     script:
-        'src/split_scaffolds_on_n.py'
+        'src/orient_scaffolds.py'
 
 rule ragtag:
     input:
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
         query = 'output/020_flye/{indiv}/assembly.fasta'
     output:
-        'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta'
+        'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta',
+        'output/025_ragtag/{indiv}/ragtag.scaffolds.agp'
     params:
         wd = 'output/025_ragtag/{indiv}'
     log:
