@@ -181,6 +181,7 @@ rule ragtag:
         'ragtag.py scaffold '
         '-o {params.wd} '
         '-w '
+        '-r -g 101 '    # only add gaps 101 Ns or longer
         '-t {threads} '
         '{input.ref} '
         '{input.query} '
