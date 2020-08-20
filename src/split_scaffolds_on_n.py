@@ -24,7 +24,7 @@ outseqs = []
 
 fasta = SeqIO.parse(fasta_file, 'fasta')
 for myseq in fasta:
-    my_splitseqs = re.compile("[nN]{101,}").split(str(myseq.seq))    
+    my_splitseqs = re.compile("[nN]{100,}").split(str(myseq.seq))    
     for splitseq in my_splitseqs:
         i += 1
         my_newname = f'contig_{i:05}'
