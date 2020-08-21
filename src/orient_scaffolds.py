@@ -39,6 +39,7 @@ outseqs = []
 logging.info(f'Generating output sequences')
 for line in agp_lines:
     logging.info(line)
+    logging.info(f'Key {line[5]}')
     record = fa_idx[line[5]]
     if line[8] == '-':
         record.seq = record.seq.reverse_complement()

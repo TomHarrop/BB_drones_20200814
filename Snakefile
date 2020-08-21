@@ -154,7 +154,7 @@ rule prepare_ref:
 # DE NOVO ASSEMBLY
 rule orient_scaffolds:
     input:
-        fa = 'output/025_ragtag/{indiv}/ragtag.scaffolds.fasta',
+        fa = 'output/020_flye/{indiv}/assembly.fasta',
         agp = 'output/025_ragtag/{indiv}/ragtag.scaffolds.agp'
     output:
         fa = 'output/027_oriented/{indiv}.fa'
