@@ -158,6 +158,8 @@ rule orient_scaffolds:
         agp = 'output/025_ragtag/{indiv}/ragtag.scaffolds.agp'
     output:
         fa = 'output/027_oriented/{indiv}.fa'
+    log:
+        'output/logs/orient_scaffolds.{indiv}.log'
     singularity:
         biopython
     script:
