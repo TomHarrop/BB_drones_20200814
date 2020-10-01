@@ -16,9 +16,9 @@ library(data.table)
 
 # dev
 fai_file <- "data/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai"
-query_fai_file <- "output/027_split/BB31.fa.fai"
+query_fai_file <- "output/027_oriented/BB31.fa.fai"
 paf_file <- "output/040_wga/BB31.paf"
-query2_fai_file <- "output/027_split/BB55.fa.fai"
+query2_fai_file <- "output/027_oriented/BB55.fa.fai"
 paf2_file <- "output/040_wga/BB55.paf"
 plot_file <- "test/inversion.pdf"
 # indiv_name <- "BB31"
@@ -104,55 +104,19 @@ query_order2 <- biggest_hits2[!is.na(ref_fact), unique(query)]
 # PLOTS #
 #########
 
-# links
-x1 <- filtered_paf[query %in% query_order &
-                       query == "contig_00023",
-                   .(target, target_start, target_end)]
+# need a way to detect inverted links
+testpaf <- filtered_paf[query %in% query_order]
+noninvpaf <- testpaf[strand == "+"]
+invpaf <- testpaf[strand == "-"]
 
-# subtract the length for query positions to reverse the coordinates
-x2 <- filtered_paf[query %in% query_order &
-                       query == "contig_00023",
-                   .(query,
-                     query_length - query_start,
-                     query_length - query_end)]
-# links
-x3 <- filtered_paf2[query %in% query_order2 &
-                        query == "contig_00048",
-                   .(target, target_start, target_end)]
-
-# subtract the length for query positions to reverse the coordinates
-x4 <- filtered_paf2[query %in% query_order2 &
-                        query == "contig_00048",
-                   .(query,
-                     query_length - query_start,
-                     query_length - query_end)]
-
-
-# non-inversion links
-x5 <- rbind(filtered_paf[query %in% query_order &
-                 query != "contig_00023",
-             .(target, target_start, target_end)],
-    filtered_paf2[query %in% query_order2 &
-                  query != "contig_00048",
-              .(target, target_start, target_end)])
-
-
-x6 <- rbind(
-    filtered_paf[query %in% query_order &
-                     query != "contig_00023",
-                 .(query,
-                   query_length - query_start,
-                   query_length - query_end)],
-    filtered_paf2[query %in% query_order2 &
-                      query != "contig_00048",
-                  .(query,
-                    query_length - query_start,
-                    query_length - query_end)]
-)
+testpaf2 <- filtered_paf2[query %in% query_order2]
+noninvpaf2 <- testpaf2[strand == "+"]
+invpaf2 <- testpaf2[strand == "-"]
 
 # join the 2 fais
-mycols <- viridis::viridis(3)
+mycols <- viridis::viridis(4)
 
+fai[name == "NC_037644.1", chr_col := mycols[[1]]]
 
 query_fai_subset <- query_fai[name %in% query_order]
 query_fai_subset[, chr_col := mycols[[2]]]
@@ -176,9 +140,6 @@ LookupChrColour <- function(x){
 
 # generate link colours
 # alpha works if border is off
-linkcol <- 
-linkcol2 <- 
-# linkcol <- fai[x1, on=c(name="target"), chr_col]
 
 # draw the plot
 
@@ -186,7 +147,9 @@ cairo_pdf(plot_file)
 # par(xpd = NA)
 circos.initializeWithIdeogram(cytoband = myfai[length > 1e3],
                               plotType = c("axis"),
-                              chromosome.index = c(ref_order, rev(query_order), rev(query_order2)))
+                              chromosome.index = c(ref_order,
+                                                   rev(query_order),
+                                                   rev(query_order2)))
 
 # text(0, 1.05, indiv_name, cex = 1)
 # text(0, -1.05, "Reference", cex = 1, )
@@ -204,14 +167,33 @@ circos.track(ylim = c(0, 1), panel.fun = function(x, y) {
                 facing = "inside", niceFacing = TRUE)},
     track.height = 0.1, bg.border = NA)
 
-circos.genomicLink(x5, x6,
+
+circos.genomicLink(noninvpaf[, .(target, target_start, target_end)],
+                   noninvpaf[, .(query,
+                              query_length - query_start,
+                              query_length - query_end)],
                    col = ggplot2::alpha("grey", 0.5),
                    border = NA)
 
-circos.genomicLink(x1, x2,
+circos.genomicLink(noninvpaf2[, .(target, target_start, target_end)],
+                   noninvpaf2[, .(query,
+                                 query_length - query_start,
+                                 query_length - query_end)],
+                   col = ggplot2::alpha("grey", 0.5),
+                   border = NA)
+
+
+circos.genomicLink(invpaf[, .(target, target_start, target_end)],
+                   invpaf[, .(query,
+                                 query_length - query_start,
+                                 query_length - query_end)],
                    col = ggplot2::alpha(mycols[[2]], 0.8),
                    border = NA)
-circos.genomicLink(x3, x4,
+
+circos.genomicLink(invpaf2[, .(target, target_start, target_end)],
+                   invpaf2[, .(query,
+                              query_length - query_start,
+                              query_length - query_end)],
                    col = ggplot2::alpha(mycols[[3]], 0.8),
                    border = NA)
 
