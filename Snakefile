@@ -30,7 +30,7 @@ ragtag = 'shub://TomHarrop/assembly-utils:ragtag_1.0.1'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
 sniffles = 'shub://TomHarrop/variant-utils:sniffles_53b7500'
 
-indivs = ['BB31', 'BB55', 'BB28', 'BB34']
+indivs = ['BB31', 'BB55', 'BB28', 'BB34', 'BB42']
 
 #########
 # RULES #
