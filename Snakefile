@@ -74,7 +74,7 @@ rule target:
                indiv=indivs,
                folder=['010_porechop',
                        '027_oriented']),
-        expand('output/040_wga/{indiv}.{chr}.pdf',
+        expand('output/040_wga/{chr}/{indiv}.pdf',
                indiv=indivs,
                chr=ref_chrs)
 
@@ -105,7 +105,7 @@ rule indiv_chr_plot:
         ref_fai = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai',
         paf = 'output/040_wga/{indiv}.paf',
     output:
-        plot = 'output/040_wga/{indiv}.{chr}.pdf'
+        plot = 'output/040_wga/{chr}/{indiv}.pdf'
     params:
         block_size = 1e4,
         score = 30
