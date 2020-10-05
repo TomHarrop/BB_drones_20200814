@@ -32,6 +32,26 @@ sniffles = 'shub://TomHarrop/variant-utils:sniffles_f958698'
 
 indivs = ['BB31', 'BB55', 'BB28', 'BB34', 'BB42', 'BB43', 'BB24']
 
+# lol @ hardcode
+ref_chrs = [
+    'NC_001566.1',
+    'NC_037638.1',
+    'NC_037639.1',
+    'NC_037640.1',
+    'NC_037641.1',
+    'NC_037642.1',
+    'NC_037643.1',
+    'NC_037644.1',
+    'NC_037645.1',
+    'NC_037646.1',
+    'NC_037647.1',
+    'NC_037648.1',
+    'NC_037649.1',
+    'NC_037650.1',
+    'NC_037651.1',
+    'NC_037652.1',
+    'NC_037653.1']
+
 #########
 # RULES #
 #########
@@ -56,7 +76,7 @@ rule target:
                        '027_oriented']),
         expand('output/040_wga/{indiv}.{chr}.pdf',
                indiv=indivs,
-               chr=['NC_037644.1'])
+               chr=ref_chrs)
 
 # SVs
 rule sniffles:
