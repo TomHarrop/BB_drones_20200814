@@ -14,9 +14,9 @@ query_fai_file <- snakemake@input[["query_fai"]]
 paf_file <- snakemake@input[["paf"]]
 plot_file <- snakemake@output[["plot"]]
 
-# indiv_name <- snakemake@wildcards[["indiv"]]
+# params
+ indiv_name <- snakemake@wildcards[["indiv"]]
 chr_to_plot <- snakemake@wildcards[["chr"]]
-
 block_size_min <- snakemake@params[["block_size"]]
 score_min <- snakemake@params[["score"]]
 
