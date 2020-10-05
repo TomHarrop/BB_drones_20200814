@@ -8,10 +8,11 @@ sink(log, type = "output", append = TRUE)
 library(circlize)
 library(data.table)
 
-# fai_file <- snakemake@input[["ref_fai"]]
-# query_fai_file <- snakemake@input[["query_fai"]]
-# paf_file <- snakemake@input[["paf"]]
-# plot_file <- snakemake@output[["plot"]]
+# files
+fai_file <- snakemake@input[["ref_fai"]]
+query_fai_file <- snakemake@input[["query_fai"]]
+paf_file <- snakemake@input[["paf"]]
+plot_file <- snakemake@output[["plot"]]
 
 # indiv_name <- snakemake@wildcards[["indiv"]]
 chr_to_plot <- snakemake@wildcards[["chr"]]
