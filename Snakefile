@@ -28,7 +28,7 @@ porechop = 'shub://TomHarrop/ont-containers:porechop_0.2.4'
 r = 'shub://TomHarrop/r-containers:r_4.0.0'
 ragtag = 'shub://TomHarrop/assembly-utils:ragtag_1.0.1'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
-sniffles = 'shub://TomHarrop/variant-utils:sniffles_53b7500'
+sniffles = 'shub://TomHarrop/variant-utils:sniffles_f958698'
 
 indivs = ['BB31', 'BB55', 'BB28', 'BB34', 'BB42', 'BB43', 'BB24']
 
@@ -45,8 +45,16 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
-        expand('output/050_sniffles/{indiv}.vcf',
-               indiv=indivs)
+        expand('output/050_sniffles/{indiv}.vcf.gz',
+               indiv=indivs),
+        'output/030_mapped/merged.bam',
+        expand('output/{folder}/{indiv}.tsv',
+               indiv=indivs,
+               folder=['010_porechop',
+                       '027_oriented']),
+        expand('output/040_wga/{indiv}.{chr}.pdf',
+               indiv=indivs,
+               chr=['NC_037644.1'])
 
 # SVs
 rule sniffles:
@@ -69,6 +77,23 @@ rule sniffles:
         '&> {log}'
 
 # WGA
+rule indiv_chr_plot:
+    input:
+        query_fai = 'output/027_oriented/{indiv}.fa.fai',
+        ref_fai = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai',
+        paf = 'output/040_wga/{indiv}.paf',
+    output:
+        plot = 'output/040_wga/{indiv}.{chr}.pdf'
+    params:
+        block_size = 1e4,
+        score = 30
+    log:
+        'output/logs/indiv_chr_plot.{indiv}.{chr}.log'
+    singularity:
+        r
+    script:
+        'src/indiv_chr_plot.R'
+
 rule plot_wga:
     input:
         query_fai = 'output/027_oriented/{indiv}.fa.fai',
@@ -107,6 +132,28 @@ rule wga:
 
 
 # REFERENCE MAP
+rule merged_indiv_bamfiles:
+    input:
+        expand('output/030_mapped/{indiv}.sorted.bam',
+               indiv=indivs)
+    output:
+        'output/030_mapped/merged.bam'
+    log:
+        'output/logs/merged_indiv_bamfiles.log'
+    threads:
+        min(workflow.cores, 20)
+    singularity:
+        samtools
+    shell:
+        'samtools merge '
+        '-l 9 '
+        '-O BAM '
+        '-@ {threads} '
+        '{output} '
+        '{input} '
+        '2> {log}'
+
+
 rule map_to_genome:
     input:
         fq = 'output/010_porechop/{indiv}.fastq.gz',
@@ -361,3 +408,41 @@ rule sam_to_paf:
         '{input} '
         '>{output} '
         '2>{log}'
+
+
+rule read_stats:
+    input:
+        '{path}/{file}.fastq.gz'
+    output:
+        '{path}/{file}.tsv'
+    log:
+        'output/logs/read_stats.{path}.{file}.log'
+    singularity:
+        bbmap
+    shell:
+        'stats.sh '
+        'in={input} '
+        'minscaf=1 '
+        'format=3 '
+        '> {output} '
+        '2> {log}'
+
+
+rule assembly_stats:
+    input:
+        '{path}/{file}.fa'
+    output:
+        '{path}/{file}.tsv'
+    log:
+        'output/logs/assembly_stats.{path}.{file}.log'
+    singularity:
+        bbmap
+    shell:
+        'stats.sh '
+        'in={input} '
+        'minscaf=1 '
+        'format=3 '
+        '> {output} '
+        '2> {log}'
+
+
