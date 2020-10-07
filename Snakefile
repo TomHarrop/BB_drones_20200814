@@ -57,7 +57,8 @@ ref_chrs = [
 #########
 
 wildcard_constraints:
-    indiv = '|'.join(indivs)
+    indiv = '|'.join(indivs),
+    sniffles_dir = '050_sniffles|055_sniffles-pop'
 
 rule target:
     input:
@@ -67,8 +68,6 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
-        expand('output/050_sniffles-pop/{indiv}.vcf',
-               indiv=indivs),
         'output/030_mapped/merged.bam',
         expand('output/{folder}/{indiv}.tsv',
                indiv=indivs,
@@ -77,7 +76,7 @@ rule target:
         expand('output/040_wga/{chr}/{indiv}.pdf',
                indiv=indivs,
                chr=ref_chrs),
-        'output/050_sniffles/merged.vcf.gz'
+        'output/055_sniffles-pop/merged.vcf.gz'
 
 # SVs
 rule sniffles_pop:
@@ -85,7 +84,7 @@ rule sniffles_pop:
         bam = 'output/030_mapped/{indiv}.sorted.bam',
         vcf = 'output/050_sniffles/merged.vcf'
     output:
-        'output/050_sniffles-pop/{indiv}.vcf'
+        'output/055_sniffles-pop/{indiv}.vcf'
     log:
         'output/logs/sniffles_pop.{indiv}.log'
     threads:
@@ -103,12 +102,12 @@ rule sniffles_pop:
 
 rule merge_sniffles_vcfs:
     input:
-        expand('output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
+        expand('output/{{sniffles_dir}}/{indiv}.norm.sorted.vcf.gz',
                indiv=indivs)
     output:
-        'output/050_sniffles/merged.vcf'
+        'output/{sniffles_dir}/merged.vcf'
     log:
-        'output/logs/merge_sniffles_vcfs.log'
+        'output/logs/merge_sniffles_vcfs.{sniffles_dir}.log'
     container:
         samtools
     shell:
@@ -118,14 +117,15 @@ rule merge_sniffles_vcfs:
         '2> {log}'
 
 # sniffles makes a mess, try to skip the really bad stuff
+# losing > 50% of SVs here
 rule sniffles_norm:
     input:
-        vcf = 'output/050_sniffles/{indiv}.vcf',
+        vcf = 'output/{sniffles_dir}/{indiv}.vcf',
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna'
     output:
-        pipe('output/050_sniffles/{indiv}.norm.vcf')
+        pipe('output/{sniffles_dir}/{indiv}.norm.vcf')
     log:
-        'output/logs/sniffles_norm.{indiv}.log'
+        'output/logs/sniffles_norm.{sniffles_dir}.{indiv}.log'
     container:
         samtools
     shell:
