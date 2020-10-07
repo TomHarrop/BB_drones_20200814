@@ -81,10 +81,11 @@ rule target:
 # SVs
 # sniffles makes a mess, try to skip the really bad stuff
 
-rule test_sniffles_targets:
+rule merge_sniffles_vcfs:
     input:
-        expand('output/050_sniffles/{indiv}.norm.sorted.vcf',
+        expand('output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
                indiv=indivs)
+
 
 rule sort_vcf:
     input:
