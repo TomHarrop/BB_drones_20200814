@@ -79,6 +79,47 @@ rule target:
                chr=ref_chrs)
 
 # SVs
+# sniffles makes a mess, try to skip the really bad stuff
+
+rule test_sniffles_targets:
+    input:
+        expand('output/050_sniffles/{indiv}.norm.sorted.vcf',
+               indiv=indivs)
+
+rule sort_vcf:
+    input:
+        'output/{folder}/{file}.vcf'
+    output:
+        pipe('output/{folder}/{file}.sorted.vcf')
+    singularity:
+        samtools
+    log:
+        'output/logs/sort_vcf.{folder}.{file}.log'
+    shell:
+        'bcftools sort '
+        '{input} '
+        '>> {output} '
+        '2> {log}'
+
+rule sniffles_norm:
+    input:
+        vcf = 'output/050_sniffles/{indiv}.vcf',
+        ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna'
+    output:
+        pipe('output/050_sniffles/{indiv}.norm.vcf')
+    log:
+        'output/logs/sniffles_norm.{indiv}.log'
+    container:
+        samtools
+    shell:
+        'bcftools norm '
+        '-f {input.ref} '
+        '-c x '             # EXCLUDE bad sites, this kicks out a lot of stuff
+        '{input.vcf} '
+        '>> {output} '
+        '2> {log}'
+
+
 rule sniffles:
     input:
         'output/030_mapped/{indiv}.sorted.bam'
