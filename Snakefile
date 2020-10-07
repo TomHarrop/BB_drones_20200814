@@ -117,7 +117,6 @@ rule merge_sniffles_vcfs:
         '2> {log}'
 
 # sniffles makes a mess, try to skip the really bad stuff
-# losing > 50% of SVs here
 rule sniffles_norm:
     input:
         vcf = 'output/{sniffles_dir}/{indiv}.vcf',
@@ -131,7 +130,7 @@ rule sniffles_norm:
     shell:
         'bcftools norm '
         '-f {input.ref} '
-        '-c s '             # EXCLUDE bad sites, this kicks out a lot of stuff
+        '-c sx '             # FIX/EXCLUDE bad sites, this kicks out a lot of stuff
         '{input.vcf} '
         '>> {output} '
         '2> {log}'
