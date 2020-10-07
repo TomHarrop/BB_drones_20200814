@@ -131,7 +131,7 @@ rule sniffles_norm:
     shell:
         'bcftools norm '
         '-f {input.ref} '
-        '-c x '             # EXCLUDE bad sites, this kicks out a lot of stuff
+        '-c s '             # EXCLUDE bad sites, this kicks out a lot of stuff
         '{input.vcf} '
         '>> {output} '
         '2> {log}'
