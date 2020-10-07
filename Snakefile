@@ -76,7 +76,8 @@ rule target:
                        '027_oriented']),
         expand('output/040_wga/{chr}/{indiv}.pdf',
                indiv=indivs,
-               chr=ref_chrs)
+               chr=ref_chrs),
+        'output/050_sniffles/merged.vcf.gz'
 
 # SVs
 # sniffles makes a mess, try to skip the really bad stuff
@@ -85,19 +86,14 @@ rule merge_sniffles_vcfs:
     input:
         expand('output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
                indiv=indivs)
-
-
-rule sort_vcf:
-    input:
-        'output/{folder}/{file}.vcf'
     output:
-        pipe('output/{folder}/{file}.sorted.vcf')
-    singularity:
-        samtools
+        pipe('output/050_sniffles/merged.vcf')
     log:
-        'output/logs/sort_vcf.{folder}.{file}.log'
+        'output/logs/merge_sniffles_vcfs.log'
+    container:
+        samtools
     shell:
-        'bcftools sort '
+        'bcftools merge '
         '{input} '
         '>> {output} '
         '2> {log}'
@@ -444,6 +440,21 @@ rule index_vcf:
         'bgzip -c {input} > {output.gz} '
         '; '
         'tabix -p vcf {output.gz}'
+
+rule sort_vcf:
+    input:
+        'output/{folder}/{file}.vcf'
+    output:
+        pipe('output/{folder}/{file}.sorted.vcf')
+    singularity:
+        samtools
+    log:
+        'output/logs/sort_vcf.{folder}.{file}.log'
+    shell:
+        'bcftools sort '
+        '{input} '
+        '>> {output} '
+        '2> {log}'
 
 rule index_fa:
     input:
