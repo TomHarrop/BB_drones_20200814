@@ -67,7 +67,7 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
-        expand('output/050_sniffles/{indiv}.vcf.gz',
+        expand('output/050_sniffles/{indiv}.vcf',
                indiv=indivs),
         'output/030_mapped/merged.bam',
         expand('output/{folder}/{indiv}.tsv',
