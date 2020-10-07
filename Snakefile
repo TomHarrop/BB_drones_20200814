@@ -67,7 +67,7 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
-        expand('output/050_sniffles/{indiv}.vcf',
+        expand('output/050_sniffles-pop/{indiv}.vcf',
                indiv=indivs),
         'output/030_mapped/merged.bam',
         expand('output/{folder}/{indiv}.tsv',
@@ -80,14 +80,33 @@ rule target:
         'output/050_sniffles/merged.vcf.gz'
 
 # SVs
-# sniffles makes a mess, try to skip the really bad stuff
+rule sniffles_pop:
+    input:
+        bam = 'output/030_mapped/{indiv}.sorted.bam',
+        vcf = 'output/050_sniffles/merged.vcf'
+    output:
+        'output/050_sniffles-pop/{indiv}.vcf'
+    log:
+        'output/logs/sniffles.{indiv}.log'
+    threads:
+        min(workflow.cores, 64)
+    singularity:
+        sniffles
+    shell:
+        'sniffles '
+        '-m {input.bam} '
+        '-v {output} '
+        '--Ivcf {input.vcf}'
+        '-t {threads} '
+        '&> {log}'
+
 
 rule merge_sniffles_vcfs:
     input:
         expand('output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
                indiv=indivs)
     output:
-        pipe('output/050_sniffles/merged.vcf')
+        'output/050_sniffles/merged.vcf'
     log:
         'output/logs/merge_sniffles_vcfs.log'
     container:
@@ -98,6 +117,7 @@ rule merge_sniffles_vcfs:
         '>> {output} '
         '2> {log}'
 
+# sniffles makes a mess, try to skip the really bad stuff
 rule sniffles_norm:
     input:
         vcf = 'output/050_sniffles/{indiv}.vcf',
