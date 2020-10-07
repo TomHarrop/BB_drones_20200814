@@ -87,7 +87,7 @@ rule sniffles_pop:
     output:
         'output/050_sniffles-pop/{indiv}.vcf'
     log:
-        'output/logs/sniffles.{indiv}.log'
+        'output/logs/sniffles_pop.{indiv}.log'
     threads:
         min(workflow.cores, 64)
     singularity:
@@ -96,7 +96,7 @@ rule sniffles_pop:
         'sniffles '
         '-m {input.bam} '
         '-v {output} '
-        '--Ivcf {input.vcf}'
+        '--Ivcf {input.vcf} '
         '-t {threads} '
         '&> {log}'
 
