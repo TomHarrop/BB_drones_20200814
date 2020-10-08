@@ -54,6 +54,20 @@ ref_chrs = [
     'NC_037652.1',
     'NC_037653.1']
 
+# types of SV (to process separately)
+svtypes = {
+    'DEL': 'DEL',
+    'DEL_INV': 'DEL/INV',
+    'DEL_INVDUP': 'DEL/INVDUP',
+    'DUP': 'DUP',
+    'DUP_INS': 'DUP/INS',
+    'INS': 'INS',
+    'INV': 'INV',
+    'INVDUP': 'INVDUP',
+    'INV_INVDUP': 'INV/INVDUP'}
+
+
+
 #########
 # RULES #
 #########
@@ -84,21 +98,22 @@ rule target:
 # Variant graph
 rule vg_target:
     input:
-        expand('output/060_vg/{chrom}.vg',
-               chrom=ref_chrs)
+        expand('output/060_vg/{svtype}/{chrom}.vg',
+               chrom=ref_chrs,
+               svtype=list(svtypes.keys()))
 
 rule vg_construct:
     input:
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
-        vcf = 'output/055_sniffles-pop/merged.vcf.gz'
+        vcf = 'output/060_vg/{svtype}.vcf.gz'
         # vcf = expand('output/055_sniffles-pop/{indiv}.vcf.gz',
         #              indiv=indivs)
     output:
-        'output/060_vg/{chrom}.vg'
+        'output/060_vg/{svtype}/{chrom}.vg'
     # params:
     #     indivs = lambda wildcards, input: ' -v '.join(input.vcf)
     log:
-        'output/logs/vg_construct.{chrom}.log'
+        'output/logs/vg_construct.{svtype}.{chrom}.log'
     threads:
         min(workflow.cores, 20)
     container:
@@ -113,6 +128,22 @@ rule vg_construct:
         '> {output} '
         '2> {log}'
 
+
+rule filter_svtype:
+    input:
+        'output/055_sniffles-pop/merged.vcf.gz'
+    output:
+        temp('output/060_vg/{svtype}.vcf')
+    params:
+        svtype = lambda wildcards: svtypes[wildcards.svtype]
+    container:
+        samtools
+    shell:
+        'bcftools filter '
+        '-i \'INFO/SVTYPE=="{params.svtype}"\' '
+        '{input} '
+        '> {output} '
+        '2> {log}'
 
 # SVs
 rule sniffles_pop:
