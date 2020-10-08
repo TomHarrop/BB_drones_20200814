@@ -542,7 +542,7 @@ rule assembly_stats:
 # FIX HEADER PIPELINE, YUCK
 rule header_line:
     output:
-        temp('output/050_sniffles/nl.txt')
+        temp('output/{sniffles_dir}/nl.txt')
     container:
         samtools
     shell:
@@ -552,9 +552,9 @@ rule header_line:
 
 rule reheader1:
     input:
-        'output/050_sniffles/{indiv}.norm.sorted.vcf.gz'
+        'output/{sniffles_dir}/{indiv}.norm.sorted.vcf.gz'
     output:
-        temp('output/050_sniffles/{indiv}.hdr1.txt')
+        temp('output/{sniffles_dir}/{indiv}.hdr1.txt')
     container:
         samtools
     shell:
@@ -565,9 +565,9 @@ rule reheader1:
 
 rule reheader2:
     input:
-        'output/050_sniffles/{indiv}.hdr1.txt'
+        'output/{sniffles_dir}/{indiv}.hdr1.txt'
     output:
-        temp('output/050_sniffles/{indiv}.hdr2.txt')
+        temp('output/{sniffles_dir}/{indiv}.hdr2.txt')
     container:
         samtools
     shell:
@@ -578,10 +578,10 @@ rule reheader2:
 
 rule reheader3:
     input:
-        hdr = 'output/050_sniffles/{indiv}.hdr2.txt',
-        nl = 'output/050_sniffles/nl.txt'
+        hdr = 'output/{sniffles_dir}/{indiv}.hdr2.txt',
+        nl = 'output/{sniffles_dir}/nl.txt'
     output:
-        temp('output/050_sniffles/{indiv}.hdr3.txt')
+        temp('output/{sniffles_dir}/{indiv}.hdr3.txt')
     container:
         samtools
     shell:
@@ -592,10 +592,10 @@ rule reheader3:
 
 rule reheader4:
     input:
-        vcf = 'output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
-        hdr = 'output/050_sniffles/{indiv}.hdr3.txt'
+        vcf = 'output/{sniffles_dir}/{indiv}.norm.sorted.vcf.gz',
+        hdr = 'output/{sniffles_dir}/{indiv}.hdr3.txt'
     output:
-        'output/050_sniffles/{indiv}.reheader.vcf'
+        'output/{sniffles_dir}/{indiv}.reheader.vcf'
     container:
         samtools
     shell:
