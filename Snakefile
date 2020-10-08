@@ -90,7 +90,7 @@ rule vg_target:
 rule vg_construct:
     input:
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
-        vcf = expand('output/055_sniffles-pop/{indiv}.vcf',
+        vcf = expand('output/055_sniffles-pop/{indiv}.vcf.gz',
                      indiv=indivs)
     output:
         'output/060_vg/{chrom}.vg'
