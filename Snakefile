@@ -568,11 +568,9 @@ rule reheader2:
         'output/050_sniffles/{indiv}.hdr1.txt'
     output:
         'output/050_sniffles/{indiv}.hdr2.txt'
-    # container:
-    #     samtools
+    container:
+        samtools
     shell:
-        # 'grep -v '
-        # '"^##INFO=\\<ID=STRANDS\\," '
         'sed '
         '\'/^##INFO=<ID=STRANDS,/d\' '
         '{input} '
