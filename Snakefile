@@ -90,12 +90,13 @@ rule vg_target:
 rule vg_construct:
     input:
         ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
-        vcf = expand('output/055_sniffles-pop/{indiv}.vcf.gz',
-                     indiv=indivs)
+        vcf = 'output/055_sniffles-pop/merged.vcf.gz'
+        # vcf = expand('output/055_sniffles-pop/{indiv}.vcf.gz',
+        #              indiv=indivs)
     output:
         'output/060_vg/{chrom}.vg'
-    params:
-        indivs = lambda wildcards, input: ' -v '.join(input.vcf)
+    # params:
+    #     indivs = lambda wildcards, input: ' -v '.join(input.vcf)
     log:
         'output/logs/vg_construct.{chrom}.log'
     threads:
@@ -105,7 +106,7 @@ rule vg_construct:
     shell:
         'vg construct '
         '-r {input.ref} '
-        '-v {params.indivs} '
+        '-v {input.vcf} '
         '-R {wildcards.chrom} '
         '-t {threads} '
         '--handle-sv '
