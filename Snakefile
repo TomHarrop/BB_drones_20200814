@@ -562,7 +562,6 @@ rule reheader1:
         '{input} '
         '>> {output}'
 
-
 rule reheader2:
     input:
         'output/{sniffles_dir}/{indiv}.hdr1.txt'
