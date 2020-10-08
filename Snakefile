@@ -554,7 +554,7 @@ rule reheader1:
     input:
         'output/050_sniffles/{indiv}.norm.sorted.vcf.gz'
     output:
-        temp('output/050_sniffles/{indiv}.hdr1')
+        'output/050_sniffles/{indiv}.hdr1.txt'
     container:
         samtools
     shell:
@@ -565,9 +565,9 @@ rule reheader1:
 
 rule reheader2:
     input:
-        'output/050_sniffles/{indiv}.hdr1'
+        'output/050_sniffles/{indiv}.hdr1.txt'
     output:
-        temp('output/050_sniffles/{indiv}.hdr2')
+        'output/050_sniffles/{indiv}.hdr2.txt'
     # container:
     #     samtools
     shell:
@@ -578,10 +578,10 @@ rule reheader2:
 
 rule reheader3:
     input:
-        hdr = 'output/050_sniffles/{indiv}.hdr2',
+        hdr = 'output/050_sniffles/{indiv}.hdr2.txt',
         nl = 'output/050_sniffles/nl.txt'
     output:
-        temp('output/050_sniffles/{indiv}.hdr3')
+        'output/050_sniffles/{indiv}.hdr3.txt'
     container:
         samtools
     shell:
@@ -593,7 +593,7 @@ rule reheader3:
 rule reheader4:
     input:
         vcf = 'output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
-        hdr = 'output/050_sniffles/{indiv}.hdr3'
+        hdr = 'output/050_sniffles/{indiv}.hdr3.txt'
     output:
         'output/050_sniffles/{indiv}.reheader.vcf'
     container:
