@@ -548,7 +548,7 @@ rule header_line:
     shell:
         'echo '
         '\'##INFO=<ID=STRANDS,Number=.,Type=String,Description="Strand orientation of the adjacency in BEDPE format (DEL:+-, DUP:-+, INV:++/--)"\' '
-        '> {output}'
+        '>> {output}'
 
 rule reheader1:
     input:
@@ -560,7 +560,7 @@ rule reheader1:
     shell:
         'bcftools view -h '
         '{input} '
-        '> {output}'
+        '>> {output}'
 
 
 rule reheader2:
@@ -574,7 +574,7 @@ rule reheader2:
         'grep -v '
         '\"^##INFO=<ID=STRANDS,\" '
         '{input} '
-        '> {output}'
+        '>> {output}'
 
 rule reheader3:
     input:
@@ -588,7 +588,7 @@ rule reheader3:
         'bcftools annotate '
         '--header-lines {input.nl} ' 
         '{input.hdr} '
-        ' > {output}'
+        '>> {output}'
 
 rule reheader4:
     input:
