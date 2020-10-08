@@ -574,7 +574,7 @@ rule reheader2:
         'grep -v '
         '\"^##INFO=<ID=STRANDS,\" '
         '{input} '
-        '>> {output}'
+        '> {output} '
 
 rule reheader3:
     input:
