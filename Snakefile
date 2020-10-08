@@ -114,8 +114,8 @@ rule vg_construct:
     #     indivs = lambda wildcards, input: ' -v '.join(input.vcf)
     log:
         'output/logs/vg_construct.{svtype}.{chrom}.log'
-    threads:
-        min(workflow.cores, 20)
+    # threads:
+    #     min(workflow.cores, 20)
     container:
         vg
     shell:
@@ -123,7 +123,7 @@ rule vg_construct:
         '-r {input.ref} '
         '-v {input.vcf} '
         '-R {wildcards.chrom} '
-        '-t {threads} '
+        # '-t {threads} '
         '--handle-sv '
         '> {output} '
         '2> {log}'
