@@ -102,7 +102,7 @@ rule sniffles_pop:
 
 rule merge_sniffles_vcfs:
     input:
-        expand('output/{{sniffles_dir}}/{indiv}.norm.sorted.vcf.gz',
+        expand('output/{{sniffles_dir}}/{indiv}.reheader.vcf.gz',
                indiv=indivs)
     output:
         'output/{sniffles_dir}/merged.vcf'
@@ -604,5 +604,4 @@ rule reheader4:
         '{input.vcf} '
         '| zcat '
         '> {output}'
-
 
