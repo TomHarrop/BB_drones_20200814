@@ -539,4 +539,70 @@ rule assembly_stats:
         '> {output} '
         '2> {log}'
 
+# FIX HEADER PIPELINE, YUCK
+rule header_line:
+    output:
+        temp('output/050_sniffles/nl.txt')
+    container:
+        samtools
+    shell:
+        'echo '
+        '\'##INFO=<ID=STRANDS,Number=.,Type=String,Description="Strand orientation of the adjacency in BEDPE format (DEL:+-, DUP:-+, INV:++/--)"\' '
+        '> {output}'
+
+rule reheader1:
+    input:
+        'output/050_sniffles/{indiv}.norm.sorted.vcf.gz'
+    output:
+        pipe('output/050_sniffles/{indiv}.hdr1')
+    container:
+        samtools
+    shell:
+        'bcftools view -h '
+        '{input} '
+        '> {output}'
+
+
+rule reheader2:
+    input:
+        'output/050_sniffles/{indiv}.hdr1'
+    output:
+        pipe('output/050_sniffles/{indiv}.hdr2')
+    container:
+        samtools
+    shell:
+        'grep -v '
+        '\"^##INFO=<ID=STRANDS,\" '
+        '{input} '
+        '> {output}'
+
+rule reheader3:
+    input:
+        hdr = 'output/050_sniffles/{indiv}.hdr2',
+        nl = 'output/050_sniffles/nl.txt'
+    output:
+        temp('output/050_sniffles/{indiv}.hdr3')
+    container:
+        samtools
+    shell:
+        'bcftools annotate '
+        '--header-lines {input.nl} ' 
+        '{input.hdr} '
+        ' > {output}'
+
+rule reheader4:
+    input:
+        vcf = 'output/050_sniffles/{indiv}.norm.sorted.vcf.gz',
+        hdr = 'output/050_sniffles/{indiv}.hdr3'
+    output:
+        'output/050_sniffles/{indiv}.reheader.vcf'
+    container:
+        samtools
+    shell:
+        'bcftools reheader '
+        '-h {input.hdr} '
+        '{input.vcf} '
+        '| zcat '
+        '> {output}'
+
 
