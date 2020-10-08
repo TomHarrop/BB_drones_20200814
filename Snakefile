@@ -554,7 +554,7 @@ rule reheader1:
     input:
         'output/050_sniffles/{indiv}.norm.sorted.vcf.gz'
     output:
-        pipe('output/050_sniffles/{indiv}.hdr1')
+        temp('output/050_sniffles/{indiv}.hdr1')
     container:
         samtools
     shell:
@@ -567,7 +567,7 @@ rule reheader2:
     input:
         'output/050_sniffles/{indiv}.hdr1'
     output:
-        pipe('output/050_sniffles/{indiv}.hdr2')
+        temp('output/050_sniffles/{indiv}.hdr2')
     container:
         samtools
     shell:
