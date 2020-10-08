@@ -29,6 +29,8 @@ r = 'shub://TomHarrop/r-containers:r_4.0.0'
 ragtag = 'shub://TomHarrop/assembly-utils:ragtag_1.0.1'
 samtools = 'shub://TomHarrop/align-utils:samtools_1.10'
 sniffles = 'shub://TomHarrop/variant-utils:sniffles_f958698'
+vg = 'docker://quay.io/vgteam/vg:v1.27.1'
+
 
 indivs = ['BB31', 'BB55', 'BB28', 'BB34', 'BB42', 'BB43', 'BB24']
 
@@ -68,7 +70,7 @@ rule target:
                indiv=indivs),
         expand('output/040_wga/{indiv}.pdf',
                indiv=indivs),
-        'output/030_mapped/merged.bam',
+        'output/030_mapped/merged.bam.bai',
         expand('output/{folder}/{indiv}.tsv',
                indiv=indivs,
                folder=['010_porechop',
@@ -77,6 +79,36 @@ rule target:
                indiv=indivs,
                chr=ref_chrs),
         'output/055_sniffles-pop/merged.vcf.gz'
+
+
+# Variant graph
+rule vg_target:
+    input:
+        expand('output/060_vg/{chrom}.vg',
+               chrom=ref_chrs)
+
+rule vg_construct:
+    input:
+        ref = 'data/GCF_003254395.2_Amel_HAv3.1_genomic.fna',
+        vcf = 'output/055_sniffles-pop/merged.vcf.gz'
+    output:
+        'output/060_vg/{chrom}.vg'
+    log:
+        'output/logs/vg_construct.{chrom}.log'
+    threads:
+        min(workflow.cores, 20)
+    container:
+        vg
+    shell:
+        'vg construct '
+        '-r {input.ref} '
+        '-v {input.vcf} '
+        '-R {wildcards.chrom} '
+        '-t {threads} '
+        '--handle-sv '
+        '> {output} '
+        '2> {log}'
+
 
 # SVs
 rule sniffles_pop:
@@ -89,7 +121,7 @@ rule sniffles_pop:
         'output/logs/sniffles_pop.{indiv}.log'
     threads:
         min(workflow.cores, 64)
-    singularity:
+    container:
         sniffles
     shell:
         'sniffles '
@@ -145,7 +177,7 @@ rule sniffles:
         'output/logs/sniffles.{indiv}.log'
     threads:
         min(workflow.cores, 64)
-    singularity:
+    container:
         sniffles
     shell:
         'sniffles '
@@ -168,7 +200,7 @@ rule indiv_chr_plot:
         score = 30
     log:
         'output/logs/indiv_chr_plot.{indiv}.{chr}.log'
-    singularity:
+    container:
         r
     script:
         'src/indiv_chr_plot.R'
@@ -182,7 +214,7 @@ rule plot_wga:
         plot = 'output/040_wga/{indiv}.pdf'
     log:
         'output/logs/plot_wga.{indiv}.log'
-    singularity:
+    container:
         r
     script:
         'src/plot_wga.R'
@@ -197,7 +229,7 @@ rule wga:
         'output/logs/wga.{indiv}.log'
     threads:
         min(workflow.cores, 64)
-    singularity:
+    container:
         minimap
     shell:
         'minimap2 '
@@ -211,24 +243,34 @@ rule wga:
 
 
 # REFERENCE MAP
+rule index_merged_bamfile:
+    input:
+        bam = 'output/030_mapped/merged.bam'
+    output:
+        bai = 'output/030_mapped/merged.bam.bai'
+    container:
+        samtools
+    shell:
+        'samtools index {input.bam}'
+
 rule merged_indiv_bamfiles:
     input:
         expand('output/030_mapped/{indiv}.sorted.bam',
                indiv=indivs)
     output:
-        'output/030_mapped/merged.bam'
+        bam = 'output/030_mapped/merged.bam',
     log:
         'output/logs/merged_indiv_bamfiles.log'
     threads:
         min(workflow.cores, 20)
-    singularity:
+    container:
         samtools
     shell:
         'samtools merge '
         '-l 9 '
         '-O BAM '
         '-@ {threads} '
-        '{output} '
+        '{output.bam} '
         '{input} '
         '2> {log}'
 
@@ -245,7 +287,7 @@ rule map_to_genome:
         'output/logs/map_to_genome.{indiv}.log'
     threads:
         min(workflow.cores, 64)
-    singularity:
+    container:
         minimap
     shell:
         'minimap2 '
@@ -267,7 +309,7 @@ rule prepare_ref:
         'output/logs/prepare_ref.log'
     threads:
         3
-    singularity:
+    container:
         minimap
     shell:
         'minimap2 '
@@ -286,7 +328,7 @@ rule orient_scaffolds:
         fa = 'output/027_oriented/{indiv}.fa'
     log:
         'output/logs/orient_scaffolds.{indiv}.log'
-    singularity:
+    container:
         biopython
     script:
         'src/orient_scaffolds.py'
@@ -304,7 +346,7 @@ rule ragtag:
         'output/logs/ragtag.{indiv}.log'
     threads:
         min(workflow.cores, 64)
-    singularity:
+    container:
         ragtag
     shell:
         'ragtag.py scaffold '
@@ -328,7 +370,7 @@ rule flye:
         min(128, workflow.cores)
     log:
         'output/logs/flye.{indiv}.log'
-    singularity:
+    container:
         flye
     shell:
         'flye '
@@ -345,7 +387,7 @@ rule combine_indiv_reads:
         combine_indiv_reads
     output:
         pipe('output/010_porechop/{indiv}.fastq')
-    singularity:
+    container:
         bbmap
     shell:
         'cat {input} > {output}'
@@ -359,7 +401,7 @@ rule porechop:
         'output/logs/porechop.{indiv}.{read}.log'
     threads:
         1
-    singularity:
+    container:
         porechop
     shell:
         'porechop '
@@ -380,7 +422,7 @@ rule sort:
         'output/logs/sort.{folder}.{indiv}.log'
     threads:
         min(workflow.cores, 4)
-    singularity:
+    container:
         samtools
     shell:
         'samtools sort '
@@ -399,7 +441,7 @@ rule sam_to_bam:
         'output/logs/sam_to_bam.{folder}.{indiv}.log'
     threads:
         1
-    singularity:
+    container:
         samtools
     shell:
         'samtools view -bh -u {input} '
@@ -416,7 +458,7 @@ rule bam_to_sam:
         'output/logs/bam_to_sam.{folder}.{indiv}.log'
     threads:
         1
-    singularity:
+    container:
         samtools
     shell:
         'samtools view -h {input} '
@@ -430,7 +472,7 @@ rule compress_reads:
         'output/{path}/{file}.fastq.gz'
     threads:
         min(workflow.cores, 10)
-    singularity:
+    container:
         bbmap
     shell:
         'pigz -c --best {input} > {output}'
@@ -442,7 +484,7 @@ rule index_bamfile:
         'output/{folder}/{indiv}.sorted.bam.bai'
     log:
         'output/logs/index_bamfile.{folder}.{indiv}.log'
-    singularity:
+    container:
         samtools
     shell:
         'samtools index {input} 2> {log}'
@@ -453,7 +495,7 @@ rule index_vcf:
     output:
         gz = 'output/{folder}/{file}.vcf.gz',
         tbi = 'output/{folder}/{file}.vcf.gz.tbi'
-    singularity:
+    container:
         samtools
     shell:
         'bgzip -c {input} > {output.gz} '
@@ -465,7 +507,7 @@ rule sort_vcf:
         'output/{folder}/{file}.vcf'
     output:
         pipe('output/{folder}/{file}.sorted.vcf')
-    singularity:
+    container:
         samtools
     log:
         'output/logs/sort_vcf.{folder}.{file}.log'
@@ -482,7 +524,7 @@ rule index_fa:
         '{path}/{file}.{ext}.fai'
     wildcard_constraints:
         ext = 'fasta|fa|fna'
-    singularity:
+    container:
         samtools
     shell:
         'samtools faidx {input}'
@@ -495,7 +537,7 @@ rule sam_to_paf:
         'output/{folder}/{indiv}.paf'
     log:
         'output/logs/sam_to_paf.{folder}.{indiv}.log'
-    singularity:
+    container:
         minimap
     shell:
         'paftools.js sam2paf '
@@ -511,7 +553,7 @@ rule read_stats:
         '{path}/{file}.tsv'
     log:
         'output/logs/read_stats.{path}.{file}.log'
-    singularity:
+    container:
         bbmap
     shell:
         'stats.sh '
@@ -529,7 +571,7 @@ rule assembly_stats:
         '{path}/{file}.tsv'
     log:
         'output/logs/assembly_stats.{path}.{file}.log'
-    singularity:
+    container:
         bbmap
     shell:
         'stats.sh '
