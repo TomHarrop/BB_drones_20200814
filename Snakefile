@@ -134,6 +134,8 @@ rule filter_svtype:
         'output/055_sniffles-pop/merged.vcf.gz'
     output:
         temp('output/060_vg/{svtype}.vcf')
+    log:
+        'output/logs/filter_svtype.{svtype}.log'
     params:
         svtype = lambda wildcards: svtypes[wildcards.svtype]
     container:
