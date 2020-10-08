@@ -568,8 +568,8 @@ rule reheader2:
         'output/050_sniffles/{indiv}.hdr1'
     output:
         temp('output/050_sniffles/{indiv}.hdr2')
-    container:
-        samtools
+    # container:
+    #     samtools
     shell:
         'grep -v '
         '"^##INFO=<ID=STRANDS," '
