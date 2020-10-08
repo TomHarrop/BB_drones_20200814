@@ -95,7 +95,7 @@ rule vg_construct:
     output:
         'output/060_vg/{chrom}.vg'
     params:
-        indivs = lambda wildcards, input: '-v '.join(input.vcf)
+        indivs = lambda wildcards, input: ' -v '.join(input.vcf)
     log:
         'output/logs/vg_construct.{chrom}.log'
     threads:
