@@ -572,7 +572,7 @@ rule reheader2:
         samtools
     shell:
         'grep -v '
-        '\"^##INFO=<ID=STRANDS,\" '
+        '"^##INFO=<ID=STRANDS," '
         '{input} '
         '> {output} '
 
