@@ -554,7 +554,7 @@ rule reheader1:
     input:
         'output/050_sniffles/{indiv}.norm.sorted.vcf.gz'
     output:
-        'output/050_sniffles/{indiv}.hdr1.txt'
+        temp('output/050_sniffles/{indiv}.hdr1.txt')
     container:
         samtools
     shell:
@@ -567,21 +567,21 @@ rule reheader2:
     input:
         'output/050_sniffles/{indiv}.hdr1.txt'
     output:
-        'output/050_sniffles/{indiv}.hdr2.txt'
+        temp('output/050_sniffles/{indiv}.hdr2.txt')
     container:
         samtools
     shell:
         'sed '
         '\'/^##INFO=<ID=STRANDS,/d\' '
         '{input} '
-        '> {output} '
+        '>> {output} '
 
 rule reheader3:
     input:
         hdr = 'output/050_sniffles/{indiv}.hdr2.txt',
         nl = 'output/050_sniffles/nl.txt'
     output:
-        'output/050_sniffles/{indiv}.hdr3.txt'
+        temp('output/050_sniffles/{indiv}.hdr3.txt')
     container:
         samtools
     shell:
