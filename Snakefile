@@ -571,8 +571,10 @@ rule reheader2:
     # container:
     #     samtools
     shell:
-        'grep -v '
-        '"^##INFO=\\<ID=STRANDS\\," '
+        # 'grep -v '
+        # '"^##INFO=\\<ID=STRANDS\\," '
+        'sed '
+        '\'/^##INFO=<ID=STRANDS,/d\' '
         '{input} '
         '> {output} '
 
